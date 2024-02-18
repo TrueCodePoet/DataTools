@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace DataHelper
 {
-    // for EF 6 core
     public class SyncFramework
     {
         public void OnPremiseToCloud(
