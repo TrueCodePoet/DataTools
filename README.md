@@ -15,6 +15,32 @@ The `SyncFramework` is a part of the `DataHelper` namespace designed to facilita
 5. **CopyProperties**: A method to copy properties from a source entity to a target entity.
 6. **EntitiesAreEqual**: A utility to check if two entities are equal based on their properties.
 
+
+### Example JSON Configuration for `SyncConfig`
+
+```json
+{
+  "OnlyTheseTables": ["Table1", "Table2"],
+  "IgnoreTheseTables": ["LogTable", "AuditTable"],
+  "NewRecordsOnlyTables": ["RecentChanges"],
+  "SetDefaultsIfMissing": {
+    "*": {
+      "User_ID": ""
+    },
+    "Table1": {
+      "Column1": "DefaultValue1",
+      "Column2": "DefaultValue2"
+    }
+  },
+  "TableMappings": [
+    {
+      "SourceTableName": "LocalName",
+      "TargetTableName": "CloudName"
+    }
+  ]
+}
+```
+
 ### Example Use:
 
 Suppose you have two `DbContext` instances - `onPremiseContext` and `cloudContext`, and you wish to synchronize data from the on-premise database to the cloud database.
@@ -23,20 +49,33 @@ Suppose you have two `DbContext` instances - `onPremiseContext` and `cloudContex
 using DataHelper;
 
 // Create an instance of the SyncFramework
-SyncFramework syncFramework = new SyncFramework();
+var syncFramework = new SyncFramework();
+syncFramework.OnPremiseToCloud(sourceContext, destinationContext, "path/to/config.json");
 
-// Path to the update tracking file (optional)
-string updateTrackingFilePath = "path_to_tracking_file.txt";
-
-// Begin synchronization
-syncFramework.OnPremiseToCloud(onPremiseContext, cloudContext, updateTrackingFilePath);
 ```
 
-# **DbContextDifferences** Code Description and Usage Examples
+### Example 2: Synchronizing New Records Only
 
-The provided code defines a namespace **TTCMoveFilesToCloud.DataHelper** containing a class **DbContextDiff** with nested classes and methods designed to identify and script differences between two Entity Framework Core database contexts. Here's a detailed breakdown of its components and functionality:
+In `config.json`, specify tables in `NewRecordsOnlyTables` to handle new records specifically.
 
-## **DbContextDifferences** Class
+### Example 3: Table Mapping Configuration
+
+Define mappings in `config.json` under `TableMappings` to synchronize data between tables with different names.
+
+### Example 4: Setting Default Values for Missing Fields
+
+Specify `SetDefaultsIfMissing` in `config.json` to provide default values for specific fields when data is missing.
+
+### Example 5: Executing Synchronization with Table Exclusions
+
+Configure `IgnoreTheseTables` in `config.json` to exclude certain tables from the synchronization process.
+
+
+# `DbContextDifferences` Code Description and Usage Examples
+
+The provided code defines a namespace `TTCMoveFilesToCloud.DataHelper` containing a class `DbContextDiff` with nested classes and methods designed to identify and script differences between two Entity Framework Core database contexts. Here's a detailed breakdown of its components and functionality:
+
+## `DbContextDifferences` Class
 
 This nested class serves as a container for the differences found between two database contexts. It includes properties to store:
 - Tables that exist in the source but not in the destination database, and vice versa.
@@ -46,11 +85,11 @@ This nested class serves as a container for the differences found between two da
 - Missing primary keys and default values in tables.
 - Columns that are not null in the destination context but are nullable in the source, requiring manual review.
 
-### **TypeDiff** Nested Class
+### `TypeDiff` Nested Class
 
-A subclass within **DbContextDifferences**, representing the type differences between matching columns in the source and destination contexts. It includes the source type, destination type, and a description of the difference.
+A subclass within `DbContextDifferences`, representing the type differences between matching columns in the source and destination contexts. It includes the source type, destination type, and a description of the difference.
 
-## **GenerateSqlScript** Method
+## `GenerateSqlScript` Method
 
 A static method that generates a SQL script to resolve the differences identified by comparing the source and destination contexts. It constructs SQL statements for:
 - Creating missing tables in the destination context.
@@ -58,20 +97,20 @@ A static method that generates a SQL script to resolve the differences identifie
 - Adding missing primary keys.
 - Altering columns to set them as NOT NULL if they are required in the destination context but not in the source.
 
-## **CompareDbContexts** Method
+## `CompareDbContexts` Method
 
-A static method that compares two Entity Framework Core database contexts (source and destination) to identify differences in schema, such as missing tables, columns, column types, primary keys, and default values. It populates an instance of **DbContextDifferences** with these identified differences.
+A static method that compares two Entity Framework Core database contexts (source and destination) to identify differences in schema, such as missing tables, columns, column types, primary keys, and default values. It populates an instance of `DbContextDifferences` with these identified differences.
 
 ## Helper Methods for SQL Script Generation
 
-- **GenerateCreateTableScript**: Generates a SQL statement for creating a table based on the schema defined in the source context.
-- **GenerateAddColumnScript**: Produces a SQL command to add a missing column to a table in the destination context.
-- **GenerateAddPrimaryKeyScript**: Creates a SQL statement to add a primary key constraint to a table.
-- **GenerateAddDefaultValueScript**: Generates a SQL statement to add a default value constraint for a column.
+- `GenerateCreateTableScript`: Generates a SQL statement for creating a table based on the schema defined in the source context.
+- `GenerateAddColumnScript`: Produces a SQL command to add a missing column to a table in the destination context.
+- `GenerateAddPrimaryKeyScript`: Creates a SQL statement to add a primary key constraint to a table.
+- `GenerateAddDefaultValueScript`: Generates a SQL statement to add a default value constraint for a column.
 
 ## Summary
 
-The **DbContextDiff** class and its methods offer a comprehensive tool for comparing two database contexts to identify schema differences and automatically generate the necessary SQL scripts to align the destination database schema with the source. This tool is particularly useful for database migrations, synchronization, or auditing purposes, where ensuring schema consistency across different environments is critical.
+The `DbContextDiff` class and its methods offer a comprehensive tool for comparing two database contexts to identify schema differences and automatically generate the necessary SQL scripts to align the destination database schema with the source. This tool is particularly useful for database migrations, synchronization, or auditing purposes, where ensuring schema consistency across different environments is critical.
 
 ## Examples of Use
 
@@ -182,4 +221,3 @@ using (var sourceContext = new SourceDbContext())
     Console.WriteLine(sqlScript);
 }
 ```
-
